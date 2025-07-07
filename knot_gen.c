@@ -59,10 +59,11 @@ void next_seq_dt(seq_dt *s) {
     if (!est_entierement_negatif) { // on prend les positions des moins suivantes en binaire
         int n = 0; // correspond aux positions des moins
         for (int i = 0; i < s->taille; i++) {
+            n *= 2;
             if (s->seq[i] < 0) {
                 n++;
             }
-            n *= 2;
+            // printf("n = %d\n", n);
         }
 
         n++;
@@ -71,6 +72,10 @@ void next_seq_dt(seq_dt *s) {
             n /= 2;
         }
     } else { // on prend la permutation suivante pour l'ordre lexicographique
+        for (int i = 0; i < s->taille; i++) {
+            s->seq[i] = -s->seq[i]; // on remet les signes à +
+        }
+
         int pivot_index = s->taille - 2;
         while (pivot_index >= 0 && s->seq[pivot_index + 1] <= s->seq[pivot_index]) {
             pivot_index--;
@@ -98,5 +103,22 @@ void next_seq_dt(seq_dt *s) {
             s->seq[j] = temp;
         }
     }
+}
 
+void test_en_taille_4() {
+    int taille = 4;
+
+    seq_dt s;
+    init_seq_dt(&s, taille);
+
+    for (int i = 1; i <= taille; i++) {
+        s.seq[i-1] = i;
+    }
+
+    while (true) {
+        print_seq_dt(&s);
+        next_seq_dt(&s);
+    }
+
+    return 0;
 }
