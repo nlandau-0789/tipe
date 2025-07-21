@@ -3,6 +3,60 @@
 #include <math.h>
 #include <stdio.h>
 
+struct seq_dt {
+    int *seq; // on stocke seulement les nombre pairs, divisés par 2
+    int taille;
+};
+
+typedef struct seq_dt seq_dt;
+
+struct croisement {
+    int x; 
+    int y; //Position sur le Canva
+    float angle;
+    int pair;
+    int impair;
+    crois* suivp;
+    crois* suivi;
+    crois* precp;
+    crois* preci;
+};
+
+typedef struct croisement crois;
+
+void force_vois(int* acc, crois* c){ //Force attractive des voisins
+    int coef = 1E20; //Coefficient a tweak
+    crois* vois = c->suivp;
+    //Voisins pairs
+    int distcarre = (c->x-vois->x)*(c->x-vois->x)+(c->y-vois->y)*(c->y-vois->y);
+    int force = coef/distcarre; //distance au carre
+    acc[0] = force*(vois->x-c->x)/sqrt(distcarre);
+    acc[1] = force*(vois->y-c->y)/sqrt(distcarre);
+
+    vois = c->precp;
+    int distcarre = (c->x-vois->x)*(c->x-vois->x)+(c->y-vois->y)*(c->y-vois->y);
+    int force = coef/distcarre; //distance au carre
+    acc[0] += force*(vois->x-c->x)/sqrt(distcarre);
+    acc[1] += force*(vois->y-c->y)/sqrt(distcarre);
+
+    //Voisins impairs
+    vois = c->suivi;
+    int distcarre = (c->x-vois->x)*(c->x-vois->x)+(c->y-vois->y)*(c->y-vois->y);
+    int force = coef/distcarre; //distance au carre
+    acc[0] += force*(vois->x-c->x)/sqrt(distcarre);
+    acc[1] += force*(vois->y-c->y)/sqrt(distcarre);
+
+    vois = c->preci;
+    int distcarre = (c->x-vois->x)*(c->x-vois->x)+(c->y-vois->y)*(c->y-vois->y);
+    int force = coef/distcarre; //distance au carre
+    acc[0] += force*(vois->x-c->x)/sqrt(distcarre);
+    acc[1] += force*(vois->y-c->y)/sqrt(distcarre);
+}
+
+//To do: Faire des calculs pour calibrer a peu pres les forces entre elles
+//Force repulsive des croisements entre eux
+//Force attractive du centre
+
 void draw_rond(int x, int y, int r, cairo_t* cr){
     cairo_save(cr);                 
     cairo_translate(cr, x, y);  
@@ -12,7 +66,7 @@ void draw_rond(int x, int y, int r, cairo_t* cr){
     cairo_restore(cr);                               
 }
 
-void draw_cross(int x, int y, int r, int angle, cairo_t* cr){
+void draw_cross(int x, int y, int r, float angle, cairo_t* cr){
     cairo_set_source_rgb(cr, 0.0, 0.0, 0.0);     // Noir
     cairo_save(cr);                 
     cairo_translate(cr, x, y); 
@@ -24,9 +78,10 @@ void draw_cross(int x, int y, int r, int angle, cairo_t* cr){
     cairo_restore(cr);
 }
 
-void draw_noeud(int n, int* dtcode) { //Pas eu la foi de finir
+void draw_noeud(seq_dt* dtcode) { //Pas eu la foi de finir
     //Prend le nombre de noeuds, le DT code
     int taille = 1000;
+    int n = dtcode->taille;
     //Taille du canva dépend du nombre de noeud
     cairo_surface_t *surface = cairo_image_surface_create(CAIRO_FORMAT_ARGB32, taille*n, taille*n);
 
@@ -42,7 +97,7 @@ void draw_noeud(int n, int* dtcode) { //Pas eu la foi de finir
     cairo_translate(cr, taille*n/2, taille*n/2);
 
     // Dessin
-    //On place les noeuds
+    //On place les croisements
 
 
     // Enregistrer image
