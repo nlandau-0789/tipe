@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <math.h>
 
 struct seq_dt {
     int *seq; // on stocke seulement les nombre pairs, divisés par 2
@@ -119,6 +120,135 @@ void test_en_taille_4() {
         print_seq_dt(&s);
         next_seq_dt(&s);
     }
+}
 
-    return 0;
+typedef seq_dt r_seq_dt;
+
+r_seq_dt* realiser_seq_dt(seq_dt *s){
+    r_seq_dt *res = malloc(sizeof(r_seq_dt));
+    init_seq_dt(res, 2*s->taille);
+    if (s->seq == NULL || s->taille <= 0) {
+        return res;
+    }
+    for (int i = 0; i < s->taille; i++) {
+        res->seq[2*i] = 2*i+1;
+        res->seq[2*i+1] = 2*s->seq[i];
+    }
+    return res;
+}
+
+int * init_UF(int n){
+    int *arbre = malloc(sizeof(int) * n);
+    for (int i = 0; i < n; i++){
+        arbre[i] = i;
+    }
+    return arbre;
+}
+
+int Find(int arbre[], int A){
+    if (arbre[A] == A){
+        return A;
+    }
+    arbre[A] = Find(arbre, arbre[A]);
+    return arbre[A];
+}
+
+void Union(int arbre[], int A, int B){
+    arbre[Find(arbre, A)] = Find(arbre, B);
+}
+
+int min(int a, int b){
+    if (a < b){
+        return a;
+    }
+    return b;
+}
+
+int max(int a, int b){
+    if (a > b){
+        return a;
+    }
+    return b;
+}
+
+bool regle1(seq_dt *seq){
+    if (seq->taille < 3){
+        return false;
+    }
+    int *arbre = init_UF(seq->taille);
+    for (int i = 0; i < seq->taille; i++){
+        for (int j = 0; j < i; j++){
+            if (Find(arbre, i) == Find(arbre, j)){
+                continue;
+            }
+            int d1 = min(abs(seq->seq[i]) * 2, i * 2 + 1), 
+                d2 = min(abs(seq->seq[j]) * 2, j * 2 + 1), 
+                f1 = max(abs(seq->seq[i]) * 2, i * 2 + 1), 
+                f2 = max(abs(seq->seq[j]) * 2, j * 2 + 1);
+
+            if ((d1 < d2 && d2 < f1 && f1 < f2) || (d2 < d1 && d1 < f2 && f2 < f1)){
+                Union(arbre, i, j);
+            }
+        }
+    }
+    
+    for (int i = 1; i < seq->taille; i++){
+        if (Find(arbre, 0) != Find(arbre, i)){
+            return false;
+        }
+    }
+    return true;
+}
+
+void test_regle1(){
+    int taille = 7;
+
+    seq_dt s;
+    init_seq_dt(&s, taille);
+
+    s.seq[0] = 6;
+    s.seq[1] = 4;
+    s.seq[2] = 5;
+    s.seq[3] = 2;
+    s.seq[4] = 3;
+    s.seq[5] = 7;
+    s.seq[6] = 1;
+
+    printf("%s\n", regle1(&s)==false?"correct":"faux");
+    free_seq_dt(&s);
+    
+    taille = 3;
+    init_seq_dt(&s, taille);
+    
+    s.seq[0] = 2;
+    s.seq[1] = 3;
+    s.seq[2] = 1;
+    
+    printf("%s\n", regle1(&s)==true?"correct":"faux");
+    free_seq_dt(&s);
+    
+    taille = 5;
+    init_seq_dt(&s, taille);
+    
+    s.seq[0] = 3;
+    s.seq[1] = 4;
+    s.seq[2] = 5;
+    s.seq[3] = 1;
+    s.seq[4] = 2;
+    
+    printf("%s\n", regle1(&s)==true?"correct":"faux");
+    free_seq_dt(&s);
+    
+    taille = 6;
+    init_seq_dt(&s, taille);
+    
+    s.seq[0] = 5;
+    s.seq[1] = 3;
+    s.seq[2] = 4;
+    s.seq[3] = 2;
+    s.seq[4] = 6;
+    s.seq[5] = 1;
+    
+    printf("%s\n", regle1(&s)==false?"correct":"faux");
+    free_seq_dt(&s);
 }
