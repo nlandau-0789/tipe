@@ -194,9 +194,11 @@ bool regle1(seq_dt *seq){
     
     for (int i = 1; i < seq->taille; i++){
         if (Find(arbre, 0) != Find(arbre, i)){
+            free(arbre);
             return false;
         }
     }
+    free(arbre);
     return true;
 }
 
